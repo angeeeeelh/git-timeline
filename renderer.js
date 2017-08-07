@@ -3,80 +3,74 @@
 // All of the Node.js APIs are available in this process.
 
 
-const {desktopCapturer} = require('electron')
-const gifshot = require('gifshot')
+const {desktopCapturer, dialog} = require('electron')
+const fs = require('fs')
+const http = require('http')
 
 
-if (navigator.mediaDevices === undefined) {
-  navigator.mediaDevices = {};
-}
+  var width = 320;    // We will scale the photo width to this
+  var height = 0;     // This will be computed based on the input stream
 
-
-
-
-
+  var streaming = false;
 
 
 
 
-// Some browsers partially implement mediaDevices. We can't just assign an object
-// with getUserMedia as it would overwrite existing properties.
-// Here, we will just add the getUserMedia property if it's missing.
-if (navigator.mediaDevices.getUserMedia === undefined) {
-  navigator.mediaDevices.getUserMedia = function(constraints) {
+    var video = document.getElementById('video');
+    var canvas = document.getElementById('canvas');
+    var photo = document.getElementById('photo');
+    var startbutton = document.getElementById('startbutton');
 
-    // First get ahold of the legacy getUserMedia, if present
-    var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-    // Some browsers just don't implement it - return a rejected promise with an error
-    // to keep a consistent interface
-    if (!getUserMedia) {
-      return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+    if (navigator.mediaDevices === undefined) {
+      navigator.mediaDevices = {};
     }
 
-    // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
-    return new Promise(function(resolve, reject) {
-      getUserMedia.call(navigator, constraints, resolve, reject);
-    });
-  }
-}
 
-/// capture sources!!!
-desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
+    // Some browsers partially implement mediaDevices. We can't just assign an object
+    // with getUserMedia as it would overwrite existing properties.
+    // Here, we will just add the getUserMedia property if it's missing.
+    if (navigator.mediaDevices.getUserMedia === undefined) {
+      navigator.mediaDevices.getUserMedia = function(constraints) {
 
-  //var pttrn = / ^Entire\sScreen$ | ^Screen\s\d*/
-console.log("getsources")
-  if (error) throw error
-  for (let i = 0; i <  sources.length; ++i) {
-    if (sources[i].name === 'Hello World!') {   // /^Entire\sScreen$/ | /^Screen\s\d*/
-      // navigator.webkitGetUserMedia({
-      //   audio: false,
-      //   video: {
-      //     mandatory: {
-      //       chromeMediaSource: 'desktop',
-      //       chromeMediaSourceId: sources[i].id,
-      //       minWidth: 1280,
-      //       maxWidth: 1280,
-      //       minHeight: 720,
-      //       maxHeight: 720
-      //     }
-      //   }
-      // }, handleStream, handleError)
+        // First get ahold of the legacy getUserMedia, if present
+        var getUserMedia = navigator.webkitGetUserMedia || navigator.mozGetUserMedia;
 
-      var promise = navigator.mediaDevices.getUserMedia(
-            { audio: false,       video: {
-            mandatory: {
-              chromeMediaSource: 'desktop',
-              maxWidth: 1920,
-              maxHeight: 1080,
-              maxFrameRate: 10,
-              minAspectRatio: 1.77,
-              chromeMediaSourceId: sources[i].id         
-                       }
-              }
-            }
-          )
-          .then(function(stream) {
+        // Some browsers just don't implement it - return a rejected promise with an error
+        // to keep a consistent interface
+        if (!getUserMedia) {
+          return Promise.reject(new Error('getUserMedia is not implemented in this browser'));
+        }
+
+        // Otherwise, wrap the call to the old navigator.getUserMedia with a Promise
+        return new Promise(function(resolve, reject) {
+          getUserMedia.call(navigator, constraints, resolve, reject);
+        });
+      }
+    }
+
+      /// capture sources!!!
+      desktopCapturer.getSources({types: ['window', 'screen']}, (error, sources) => {
+
+        //var pttrn = / ^Entire\sScreen$ | ^Screen\s\d*/
+      console.log("getsources")
+        if (error) throw error
+        for (let i = 0; i <  sources.length; ++i) {
+          if (sources[i].name === 'Entire screen') {   // /^Entire\sScreen$/ | /^Screen\s\d*/
+            var promise = navigator.mediaDevices.getUserMedia(
+                  { audio: false,       video: {
+                  mandatory: {
+                    chromeMediaSource: 'desktop',
+                    maxWidth: 1920,
+                    maxHeight: 1080,
+                    maxFrameRate: 10,
+                    minAspectRatio: 1.77,
+                    chromeMediaSourceId: sources[i].id         
+                             }
+                    }
+                  }
+                )
+                .then(function(stream) {
 
             var video = document.querySelector('video');
             // Older browsers may not have srcObject
@@ -99,8 +93,28 @@ console.log("getsources")
     else {      console.log('Sources that aren\'t the desired screen/window' + sources[i].name)
     }
   }
-})
+}) // end of desktop sources
 
+      video.addEventListener('canplay', function(ev){
+      if (!streaming) {
+        height = video.videoHeight;
+        width = video.videoWidth;
+      
+        video.setAttribute('width', width / 4);
+        video.setAttribute('height', height / 4);
+        canvas.setAttribute('width', width);
+        canvas.setAttribute('height', height);
+        streaming = true;
+      }
+    }, false);
+
+      startbutton.addEventListener('click', function(ev){
+      takepicture(this);
+      ev.preventDefault();
+    }, false);
+
+      clearphoto();
+  
 
 
 
@@ -113,7 +127,7 @@ function clearphoto() {
     photo.setAttribute('src', data);
   }
 
-function takepicture() {
+function takepicture(link) {
     var context = canvas.getContext('2d');
     if (width && height) {
       canvas.width = width;
@@ -122,22 +136,19 @@ function takepicture() {
     
       var data = canvas.toDataURL('image/png');
       photo.setAttribute('src', data);
-    } else {
+
+      downloadfromcanvas(data)
+      } else {
       clearphoto();
     }
   }
 
-
-function handleStream (stream) {
-  document.querySelector('video').src = URL.createObjectURL(stream)
-  //gifshot.takeSnapShot()
-  console.log("handleStream")
+function downloadfromcanvas(dataurl){
+  var link = document.createElement('a');
+  link.href = dataurl;
+  link.download = Date() + '.png';  
+  document.body.appendChild(link);
+  link.click();
+  console.log("download done")
+  link.remove();
 }
-
-function handleError (e) {
-  console.log(e)
-}
-
-
-
-//handleStream("big_buck_bunny.mp4")

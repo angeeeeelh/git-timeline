@@ -12,26 +12,25 @@
     and Electron <script>document.write(process.versions.electron)</script>.
   </body>
 
-  <script>
-    // You can also require other files to run in this process
 
-
-    require('./renderer.js')
-  </script>
 
     <div class="camera">
     <video id="video">Video stream not available.</video>
-    <button id="startbutton">Take photo</button>
+     <button id="startbutton"  >Take photo</button> <a id= 'download' > download</a>
   </div>
 
-  <canvas id="canvas">
+  <canvas id="canvas" style="display: none">
   </canvas>
   <div class="output">
     <img id="photo" alt="The screen capture will appear in this box.">
   </div>
-  <script type="text/javascript">
-    
-    
+
+
+    <script>
+    // You can also require other files to run in this process
+
+
+    require('./renderer.js')
   </script>
 
 
