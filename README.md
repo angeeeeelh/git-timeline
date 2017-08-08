@@ -6,6 +6,17 @@
 
 This application makes use of the availbale API modules such as desktopcapture, navigator, dialog modules and does not depend on 3rd party APIs. Support has been provided for using legacy calls when the future standard chromium API calls related to getUsermedia and webkitgetusermedia. 
 
+## Key functions
+- [x] Add CtrlorCommand+Shift+Plus as global shortcut that is recognized no matter which active state
+- [x] Create handle for stream of media containing everything on screen that is viewable to user
+- [x] Provide support for up-to-date chromium API and legacy functions
+- [x] Save picture of screenshot
+- [x] Allow for title of image to automatically set to the date and time
+- [ ] Perform testing of API
+- [ ] Attach session data 
+- [x] read Github branch and commit info 
+- [x] Create visual representation
+
 
 ## To Use
 
