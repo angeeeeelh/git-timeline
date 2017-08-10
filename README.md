@@ -6,16 +6,54 @@
 
 This application makes use of the availbale API modules such as desktopcapture, navigator, dialog modules and does not depend on 3rd party APIs. Support has been provided for using legacy calls when the future standard chromium API calls related to getUsermedia and webkitgetusermedia. 
 
+## Modules and features used from electron
+Module | features
+------------ | -------------
+navigator | getUsermedia/webkitgetusermedia
+desktopcapture | getsources
+global shortcut | tba
+browserwindow | loadURL
+dialog | (no longer used in final version) 
+webContents | tba
+session | features are in progress, and not integrated currently
+nativeImage | toPNG, createFromDataURL
+ipcMain | on channel listener
+ipcRenderer | on channel listener
+
+
+## Modules and features used from chromium
+
+Module | features
+------------ | -------------
+tba | tba
+
+
+## Modules and features used from other 3rd party js packages
+
+Module | features
+------------ | -------------
+fs | writefilesync 
+request | no longer used 
+
+
 ## Key functions
+Basic functions
 - [x] Add CtrlorCommand+Shift+Plus as global shortcut that is recognized no matter which active state
 - [x] Create handle for stream of media containing everything on screen that is viewable to user
 - [x] Provide support for up-to-date chromium API and legacy functions
-- [x] Save picture of screenshot
-- [x] Allow for title of image to automatically set to the date and time
+- [x] Save picture of screenshot using button
+- [x] Allow for title of First Header | Second Header
+------------ | -------------
+Content from cell 1 | Content from cell 2
+Content in the first column | Content in the second column
+image to automatically set to the date and time
+
+advanced functions
+- [x] Use shortcut to complete all steps for taking picture and saving in a default location. 
+- [ ] read Github branch and commit info 
+- [ ] Create visual representation
 - [ ] Perform testing of API
 - [ ] Attach session data 
-- [x] read Github branch and commit info 
-- [x] Create visual representation
 
 
 ## To Use
