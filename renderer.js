@@ -3,7 +3,7 @@
 // All of the Node.js APIs are available in this process.
 
 
-const {desktopCapturer, dialog} = require('electron')
+const {desktopCapturer, dialog, ipcRenderer} = require('electron')
 const fs = require('fs')
 const http = require('http')
 
@@ -13,14 +13,11 @@ const http = require('http')
 
   var streaming = false;
 
+  var video = document.getElementById('video');
+  var canvas = document.getElementById('canvas');
+  var photo = document.getElementById('photo');
 
-
-
-    var video = document.getElementById('video');
-    var canvas = document.getElementById('canvas');
-    var photo = document.getElementById('photo');
-    var startbutton = document.getElementById('startbutton');
-
+  var screenshotURL
 
     if (navigator.mediaDevices === undefined) {
       navigator.mediaDevices = {};
@@ -95,28 +92,22 @@ const http = require('http')
   }
 }) // end of desktop sources
 
-      video.addEventListener('canplay', function(ev){
-      if (!streaming) {
-        height = video.videoHeight;
-        width = video.videoWidth;
-      
-        video.setAttribute('width', width / 4);
-        video.setAttribute('height', height / 4);
-        canvas.setAttribute('width', width);
-        canvas.setAttribute('height', height);
-        streaming = true;
-      }
-    }, false);
-
-      startbutton.addEventListener('click', function(ev){
-      takepicture(this);
-      ev.preventDefault();
-    }, false);
-
-      clearphoto();
-  
 
 
+video.addEventListener('canplay', function(ev){
+if (!streaming) {
+  height = video.videoHeight;
+  width = video.videoWidth;
+
+  video.setAttribute('width', width / 4);
+  video.setAttribute('height', height / 4);
+  canvas.setAttribute('width', width);
+  canvas.setAttribute('height', height);
+  streaming = true;
+}
+}, false);
+
+clearphoto();  
 
 function clearphoto() {
     var context = canvas.getContext('2d');
@@ -127,7 +118,7 @@ function clearphoto() {
     photo.setAttribute('src', data);
   }
 
-function takepicture(link) {
+function takepicture() {
     var context = canvas.getContext('2d');
     if (width && height) {
       canvas.width = width;
@@ -135,20 +126,16 @@ function takepicture(link) {
       context.drawImage(video, 0, 0, width, height);
     
       var data = canvas.toDataURL('image/png');
+      screenshotURL = data;
+
       photo.setAttribute('src', data);
 
-      downloadfromcanvas(data)
       } else {
       clearphoto();
     }
   }
 
-function downloadfromcanvas(dataurl){
-  var link = document.createElement('a');
-  link.href = dataurl;
-  link.download = Date() + '.png';  
-  document.body.appendChild(link);
-  link.click();
-  console.log("download done")
-  link.remove();
-}
+ipcRenderer.on('send-screenshot-url', (event, arg) => {
+  takepicture();
+  ipcRenderer.send('sending-screenshot-url', screenshotURL)
+})

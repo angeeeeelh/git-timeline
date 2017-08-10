@@ -1,6 +1,7 @@
 const electron = require('electron')
+const {app, dialog,ipcMain, webContents, session, nativeImage} = require('electron')
 // Module to control application life.
-const app = electron.app
+//const app = electron.app
 
 const globalShortcut = electron.globalShortcut
 // Module to create native browser window.
@@ -15,15 +16,17 @@ const url = require('url')
 const fixedshortcut = 'CmdOrCtrl+Shift+Plus'
 
 
-
-
 // Keep a global reference of the window object, if you don't, the window will
 // be closed automatically when the JavaScript object is garbage collected.
 let mainWindow
 
+let contents
+
 function createWindow () {
   // Create the browser window.
   mainWindow = new BrowserWindow({width: 800, height: 600, darkTheme: true, title: 'Electron'})
+
+  contents = mainWindow.webContents
 
   // and load the index.html of the app.
   mainWindow.loadURL(url.format({
@@ -33,7 +36,7 @@ function createWindow () {
   }))
 
   // Open the DevTools.
-   mainWindow.webContents.openDevTools()
+  // mainWindow.webContents.openDevTools()
 
   // Emitted when the window is closed.
   mainWindow.on('closed', function () {
@@ -64,11 +67,10 @@ function addGlobalShortcut () {
     console.log("add global shortcut")
     globalShortcut.register(fixedshortcut, () => {
       console.log("print shortcut was pressed!!!")
+      contents.send('send-screenshot-url', 'send-screenshot-url')
     })
   }
 }
-
-
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.
@@ -105,5 +107,16 @@ app.on('will-quit', () => {
   removeGlobalShortcut()
   })
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and require them here.
+
+//  arg is a dataURL, dialog is not needed, we are going to automatically set a place to store image and use 
+//  contents.downloadURL, which calls upon session.defaultsession.("will-download"), which does the same fs handling only 
+// that it's within a session that can only start when app is ready
+
+ipcMain.on('sending-screenshot-url', (event, arg) => {
+  var natIm = nativeImage.createFromDataURL(arg);
+  require('fs').writeFileSync( path.join(__dirname, '/images/'+ Date() +'.png'), natIm.toPNG())
+})
+
+
+
+
